@@ -2,7 +2,7 @@ name: Build OGX-Mini
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "custom-11a-pico2w-reconnect" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
