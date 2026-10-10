@@ -423,6 +423,45 @@ static void maybe_restart_bredr_inquiry_after_disconnect(int disconnected_idx) {
 #endif
 }
 
+/**
+ * Pico W / Pico 2 W: Xbox One / Series / Elite 2 use BLE.
+ * 1.0.0.11a can leave the LE scanner stopped after the last Xbox BLE pad
+ * disconnects, even though "new connections" is still logically enabled.
+ * Explicitly restart LE scanning once no other BT controller is connected.
+ */
+static void maybe_restart_ble_scan_after_disconnect(int disconnected_idx) {
+#if defined(CONFIG_TARGET_PICO_W)
+    if (!uni_bt_enable_new_connections_is_enabled())
+        return;
+
+    for (uint8_t i = 0; i < CONFIG_BLUEPAD32_MAX_DEVICES; ++i) {
+        if (i == static_cast<unsigned>(disconnected_idx))
+            continue;
+        if (bt_devices_[i].connected)
+            return;
+    }
+
+    uni_bt_le_scan_start();
+#else
+    (void)disconnected_idx;
+#endif
+}
+
+#if defined(CONFIG_EN_BLUETOOTH) && defined(CONFIG_TARGET_PICO_W)
+static btstack_context_callback_registration_t s_usb_resume_bt_reg;
+
+static void restore_pairing_scans_on_bt_thread(void* ctx) {
+    (void)ctx;
+    if (any_connected())
+        return;
+
+    uni_bt_enable_new_connections_unsafe(true);
+    maybe_restart_bredr_inquiry_after_disconnect(-1);
+    maybe_restart_ble_scan_after_disconnect(-1);
+    ogxm_resume_ble_ads_if_no_acl_pad(-1);
+}
+#endif
+
 static void device_disconnected_cb(uni_hid_device_t* device) {
     int idx = uni_hid_device_get_idx_for_instance(device);
     if (idx >= CONFIG_BLUEPAD32_MAX_DEVICES || idx < 0) {
@@ -465,11 +504,14 @@ static void device_disconnected_cb(uni_hid_device_t* device) {
         btstack_run_loop_remove_timer(&feedback_timer_);
     }
     maybe_restart_bredr_inquiry_after_disconnect(idx);
+    maybe_restart_ble_scan_after_disconnect(idx);
     ogxm_resume_ble_ads_if_no_acl_pad(idx);
     // Re-enable scanning when last device disconnects so the controller can reconnect without
     // power-cycling the dongle (fixes "pairing mode but controller won't reconnect" in OG Xbox / BT mode).
     if (!any_other_connected) {
         uni_bt_enable_new_connections_unsafe(true);
+        // The enable flag may already be true while the LE scanner itself is stopped.
+        maybe_restart_ble_scan_after_disconnect(idx);
     }
 }
 
@@ -844,6 +886,14 @@ void wired_usb_takeover_disconnect_bt() {
 
 void wired_usb_release_enable_bt_pairing() {
     uni_bt_enable_new_connections_safe(true);
+}
+
+void on_usb_device_resume() {
+#if defined(CONFIG_EN_BLUETOOTH) && defined(CONFIG_TARGET_PICO_W)
+    s_usb_resume_bt_reg.callback = restore_pairing_scans_on_bt_thread;
+    s_usb_resume_bt_reg.context = nullptr;
+    btstack_run_loop_execute_on_main_thread(&s_usb_resume_bt_reg);
+#endif
 }
 
 void init(Gamepad(&gamepads)[MAX_GAMEPADS])
