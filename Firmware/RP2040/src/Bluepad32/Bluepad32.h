@@ -23,6 +23,8 @@ namespace bluepad32 {
     void wired_usb_takeover_disconnect_bt();
     /** Re-enable BT pairing after wired USB device unplugged. */
     void wired_usb_release_enable_bt_pairing();
+    /** Pico W / Pico 2 W: restore Bluetooth scans after the USB device resumes. */
+    void on_usb_device_resume();
     /** Call from main loop to send deferred PS5 adaptive-trigger updates (keeps BT callback fast). */
     void process_pending_adaptive_triggers();
     /** Optional: when set, a timer in the BT run loop calls this every ~4 ms (for GPIO device modes: PS1/PS2, GameCube). Call before run_task(). */
