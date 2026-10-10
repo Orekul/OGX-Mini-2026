@@ -20,15 +20,11 @@ Going forward, maintainer work is limited to **first-party** pads (Microsoft, So
 Unsupported third-party controllers will not be diagnosed by guesswork without that hardware. Please do not open issues asking for speculative fixes for pads I do not have.
 
 ### Boards
-I can only **test and maintain** these boards:
+I can only **test ** this board:
 
-- [Adafruit Feather USB Host](https://www.adafruit.com/product/5723)
-- Raspberry Pi **Pico W**
 - Raspberry Pi **Pico 2 W**
-- Waveshare **RP2350-USB-A**
-- **OGX Live**
 
-I cannot purchase and validate every board variant this repo builds for. For other boards (including RP2040-Zero, RP2350-Zero, XIAO, RP2354, ESP32 hybrids, 4-channel setups, and clones): **fork or clone this repository**, develop and test your patches on your hardware, and **open a pull request** so fixes can be merged here for everyone. Maintainer-led work on an additional board still requires a **GitHub issue** plus a **donation earmarked for that board** (or shipped hardware under a prior agreement).
+I cannot purchase and validate any board variant this repo builds for. For other boards (including RP2040-Zero, RP2350-Zero, XIAO, RP2354, ESP32 hybrids, 4-channel setups, and clones): **fork or clone this repository**, develop and test your patches on your hardware, and **open a pull request** so fixes can be merged here for everyone. Maintainer-led work on an additional board still requires a **GitHub issue** plus a **donation earmarked for that board** (or shipped hardware under a prior agreement).
 
 Unofficial clones, random AliExpress spin-offs, or homebrew PCBs that only “look like” a supported board are **not** guaranteed to work and are out of scope for maintainer support (you may still flash and experiment at your own risk).
 
